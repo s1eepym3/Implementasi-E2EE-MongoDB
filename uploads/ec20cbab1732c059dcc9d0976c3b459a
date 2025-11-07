@@ -1,0 +1,17 @@
+Sistem Informasi Kepegawaian
+Sesuai sistem informasi yang ditugaskan:
+A. Buat Spesifikasi Basis Data 
+
+B. Buat ERD (Entity Relationship Diagram) untuk perancangan basis datanya dengan
+langkah-langkah sebagai berikut: 
+
+1. Mengidentifikasikan dan menetapkan seluruh himpunan entity yang akan terlibat
+(minimal 3 entity).
+2. Menentukan atribut-atribut dari setiap entity.
+3. Menentukan atribut primary key dari setiap entity.
+4. Menentukan relationship antar entity.
+5. Menentukan atribut-atribut dari setiap relationship (jika ada).
+6. Menentukan Cardinality Rasio
+7. Menentukan Participation Constraint
+
+C. Buat Program Sistem Informasinya (bahasa pemrograman python dan DBMS nya mysql)

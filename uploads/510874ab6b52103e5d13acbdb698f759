@@ -1,0 +1,158 @@
+import customtkinter as ctk
+
+# ===============================
+# Fungsi Caesar Cipher
+# ===============================
+def caesar_encrypt(text, shift):
+    result = ""
+    for char in text:
+        if char.isupper():
+            result += chr((ord(char) - 65 + shift) % 26 + 65)
+        elif char.islower():
+            result += chr((ord(char) - 97 + shift) % 26 + 97)
+        else:
+            result += char
+    return result
+
+def caesar_decrypt(text, shift):
+    return caesar_encrypt(text, -shift)
+
+# ===============================
+# Fungsi Vigenere Cipher
+# ===============================
+def vigenere_encrypt(text, key):
+    result = ""
+    key = key.lower()
+    key_index = 0
+    for char in text:
+        if char.isalpha():
+            shift = ord(key[key_index % len(key)]) - 97
+            if char.isupper():
+                result += chr((ord(char) - 65 + shift) % 26 + 65)
+            else:
+                result += chr((ord(char) - 97 + shift) % 26 + 97)
+            key_index += 1
+        else:
+            result += char
+    return result
+
+def vigenere_decrypt(text, key):
+    result = ""
+    key = key.lower()
+    key_index = 0
+    for char in text:
+        if char.isalpha():
+            shift = ord(key[key_index % len(key)]) - 97
+            if char.isupper():
+                result += chr((ord(char) - 65 - shift) % 26 + 65)
+            else:
+                result += chr((ord(char) - 97 - shift) % 26 + 97)
+            key_index += 1
+        else:
+            result += char
+    return result
+
+# ===============================
+# Fungsi GUI
+# ===============================
+def do_encrypt():
+    method = combo_method.get()
+    text = entry_text.get()
+    key_or_shift = entry_key.get()
+
+    if method == "Caesar Cipher":
+        try:
+            shift = int(key_or_shift)
+            result = caesar_encrypt(text, shift)
+            output_var.set(f"Hasil Enkripsi (Caesar): {result}")
+        except ValueError:
+            output_var.set("Masukkan shift berupa angka!")
+    elif method == "Vigenère Cipher":
+        if key_or_shift == "":
+            output_var.set("Masukkan kunci huruf untuk Vigenère!")
+        else:
+            result = vigenere_encrypt(text, key_or_shift)
+            output_var.set(f"Hasil Enkripsi (Vigenère): {result}")
+
+def do_decrypt():
+    method = combo_method.get()
+    text = entry_text.get()
+    key_or_shift = entry_key.get()
+
+    if method == "Caesar Cipher":
+        try:
+            shift = int(key_or_shift)
+            result = caesar_decrypt(text, shift)
+            output_var.set(f"Hasil Dekripsi (Caesar): {result}")
+        except ValueError:
+            output_var.set("Masukkan shift berupa angka!")
+    elif method == "Vigenère Cipher":
+        if key_or_shift == "":
+            output_var.set("Masukkan kunci huruf untuk Vigenère!")
+        else:
+            result = vigenere_decrypt(text, key_or_shift)
+            output_var.set(f"Hasil Dekripsi (Vigenère): {result}")
+
+def change_theme():
+    current = ctk.get_appearance_mode()
+    if current == "Dark":
+        ctk.set_appearance_mode("light")
+    else:
+        ctk.set_appearance_mode("dark")
+
+def do_exit():
+    app.destroy()
+
+# ===============================
+# Tampilan Utama (GUI)
+# ===============================
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("blue")
+
+app = ctk.CTk()
+app.title(" Aplikasi Kriptografi - Caesar & Vigenère Cipher")
+app.geometry("550x520")
+
+# Judul
+label_title = ctk.CTkLabel(app, text="Aplikasi Kriptografi", font=("Arial", 26, "bold"))
+label_title.pack(pady=15)
+
+# Pilihan Metode
+combo_method = ctk.CTkComboBox(app, values=["Caesar Cipher", "Vigenère Cipher"], width=250)
+combo_method.set("Caesar Cipher")
+combo_method.pack(pady=10)
+
+# Input Teks
+entry_text = ctk.CTkEntry(app, placeholder_text="Masukkan teks...", width=400)
+entry_text.pack(pady=10)
+
+# Input Shift / Key
+entry_key = ctk.CTkEntry(app, placeholder_text="Masukkan shift (angka) / key (huruf)...", width=300)
+entry_key.pack(pady=10)
+
+# Frame Tombol Encrypt & Decrypt
+frame_buttons = ctk.CTkFrame(app)
+frame_buttons.pack(pady=10)
+
+btn_encrypt = ctk.CTkButton(frame_buttons, text="Encrypt", command=do_encrypt)
+btn_encrypt.grid(row=0, column=0, padx=10)
+
+btn_decrypt = ctk.CTkButton(frame_buttons, text="Decrypt", command=do_decrypt)
+btn_decrypt.grid(row=0, column=1, padx=10)
+
+# Output
+output_var = ctk.StringVar()
+label_output = ctk.CTkLabel(app, textvariable=output_var, font=("Arial", 16), wraplength=500)
+label_output.pack(pady=20)
+
+# Frame bawah (tema & keluar)
+frame_bottom = ctk.CTkFrame(app)
+frame_bottom.pack(pady=15)
+
+btn_theme = ctk.CTkButton(frame_bottom, text="Ganti Tema (Dark/Light)", command=change_theme)
+btn_theme.grid(row=0, column=0, padx=10)
+
+btn_exit = ctk.CTkButton(frame_bottom, text="Keluar", command=do_exit, fg_color="red", hover_color="darkred")
+btn_exit.grid(row=0, column=1, padx=10)
+
+app.mainloop()
