@@ -7,18 +7,23 @@ import crypto from "crypto";
 import fs from "fs";
 import path from "path";
 import cors from "cors";
+import dotenv from "dotenv"; // 🟢 Tambahkan dotenv
 import { fileURLToPath } from "url";
 import { GridFSBucket, ObjectId } from "mongodb";
 import User from "./models/User.js";
 
+// === LOAD ENV VARIABLES ===
+dotenv.config();
+
 const app = express();
 const upload = multer({ dest: "uploads/" });
-const JWT_SECRET = "secret_key_rahasia"; // ganti .env di produksi
+
+// === ENV VARIABLES ===
+const JWT_SECRET = process.env.JWT_SECRET;
+const uri = process.env.MONGO_URI;
+const PORT = process.env.PORT || 3000;
 
 // === KONEKSI MONGODB ===
-const uri =
-  "mongodb+srv://mohdhaykhal67_db_user:XimQCHzLiibrHPBf@cluster0.6f0lwfx.mongodb.net/secure_storage?retryWrites=true&w=majority";
-
 const conn = mongoose.connection;
 let gfs;
 
@@ -59,7 +64,6 @@ app.get("/verify", auth, (req, res) => {
   res.json({ username: req.user.username, role: req.user.role });
 });
 
-
 // === REGISTER ===
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
@@ -88,7 +92,6 @@ app.post("/login", async (req, res) => {
   const valid = await user.comparePassword(password);
   if (!valid) return res.status(400).json({ message: "Password salah" });
 
-  // ✨ tambahkan role ke token
   const token = jwt.sign(
     { id: user._id, username, role: user.role },
     JWT_SECRET,
@@ -98,10 +101,9 @@ app.post("/login", async (req, res) => {
   res.json({
     message: "✅ Login sukses",
     token,
-    role: user.role, // dikirim ke frontend
+    role: user.role,
   });
 });
-
 
 // === UPLOAD (terenkripsi) ===
 app.post("/upload", auth, upload.single("file"), (req, res) => {
@@ -170,19 +172,16 @@ app.get("/download/:id", async (req, res) => {
   }
 });
 
-// === LIST FILES (scope=user / all) ===
+// === LIST FILES (user / global) ===
 app.get("/files", auth, async (req, res) => {
   try {
     const scope = req.query.scope;
     let query = {};
 
-    // Jika user memilih "user", tampilkan hanya file miliknya
     if (scope === "user") {
       query = { "metadata.user": req.user.username };
-    }
-    // Jika memilih "all", tampilkan semua file (tapi filter akses download di frontend)
-    else if (scope === "all") {
-      query = {}; // tampilkan semua file
+    } else if (scope === "all") {
+      query = {};
     }
 
     const files = await conn.db.collection("files.files")
@@ -207,16 +206,16 @@ app.delete("/delete/:id", auth, async (req, res) => {
     if (file.metadata?.user !== req.user.username)
       return res.status(403).send("Tidak diizinkan menghapus file ini.");
 
-await gfs.delete(fileId);
-console.log(`🗑️ File dihapus: ${fileId.toString()} oleh ${req.user.username}`);
-res.json({ message: "✅ File berhasil dihapus." });
+    await gfs.delete(fileId);
+    console.log(`🗑️ File dihapus: ${fileId.toString()} oleh ${req.user.username}`);
+    res.json({ message: "✅ File berhasil dihapus." });
   } catch (err) {
     console.error("❌ Gagal menghapus file:", err.message);
     res.status(500).send("Gagal menghapus file: " + err.message);
   }
 });
 
-// === ADMIN: GET SEMUA FILE ===
+// === ADMIN FILE LIST ===
 app.get("/admin/files", auth, async (req, res) => {
   try {
     if (req.user.username !== "admin")
@@ -229,7 +228,7 @@ app.get("/admin/files", auth, async (req, res) => {
   }
 });
 
-// === ADMIN: DELETE FILE APA SAJA ===
+// === ADMIN DELETE ===
 app.delete("/admin/delete/:id", auth, async (req, res) => {
   try {
     if (req.user.username !== "admin")
@@ -240,7 +239,7 @@ app.delete("/admin/delete/:id", auth, async (req, res) => {
     if (!file) return res.status(404).send("File tidak ditemukan.");
 
     await gfs.delete(fileId);
-    console.log(`🗑️ Admin (${req.user.username}) menghapus file: ${file.filename} (${fileId.toString()})`);
+    console.log(`🗑️ Admin (${req.user.username}) menghapus file: ${file.filename}`);
     res.json({ message: `✅ File '${file.filename}' berhasil dihapus oleh admin.` });
   } catch (err) {
     console.error("❌ Gagal hapus file admin:", err.message);
@@ -272,5 +271,4 @@ app.get("/storage", auth, async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
