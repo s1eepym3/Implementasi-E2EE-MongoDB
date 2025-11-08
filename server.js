@@ -225,7 +225,7 @@ res.json({ message: "✅ File berhasil dihapus." });
 // === ADMIN: GET SEMUA FILE ===
 app.get("/admin/files", auth, async (req, res) => {
   try {
-    if (req.user.username !== "admin")
+    if (req.user.role !== "admin")
       return res.status(403).json({ message: "Hanya admin yang boleh." });
 
     const files = await conn.db.collection("files.files").find({}).toArray();
@@ -238,7 +238,7 @@ app.get("/admin/files", auth, async (req, res) => {
 // === ADMIN: DELETE FILE APA SAJA ===
 app.delete("/admin/delete/:id", auth, async (req, res) => {
   try {
-    if (req.user.username !== "admin")
+    if (req.user.role !== "admin")
       return res.status(403).json({ message: "Hanya admin yang boleh." });
 
     const fileId = new ObjectId(req.params.id);
@@ -246,7 +246,7 @@ app.delete("/admin/delete/:id", auth, async (req, res) => {
     if (!file) return res.status(404).send("File tidak ditemukan.");
 
     await gfs.delete(fileId);
-    console.log(`🗑️ Admin (${req.user.username}) menghapus file: ${file.filename} (${fileId.toString()})`);
+    console.log(`🗑️ Admin (${req.user.username}) menghapus file: ${file.filename}`);
     res.json({ message: `✅ File '${file.filename}' berhasil dihapus oleh admin.` });
   } catch (err) {
     console.error("❌ Gagal hapus file admin:", err.message);
