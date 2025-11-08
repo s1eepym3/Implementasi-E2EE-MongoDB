@@ -154,10 +154,12 @@ app.get("/download/:id", async (req, res) => {
     const file = await conn.db.collection("files.files").findOne({ _id: fileId });
     if (!file) return res.status(404).send("File tidak ditemukan.");
 
-    if (file.metadata?.user && file.metadata.user !== user.username)
+    // ✅ Izinkan admin download semua file
+    if (file.metadata?.user && file.metadata.user !== user.username && user.role !== "admin") {
       return res.status(403).send("Akses ditolak: bukan file Anda.");
+    }
 
-    console.log("📥 Request download untuk ID:", req.params.id);
+    console.log(`📥 ${user.username} mendownload file ${file.filename}`);
 
     const key = Buffer.from(file.metadata.key, "hex");
     const iv = Buffer.from(file.metadata.iv, "hex");
