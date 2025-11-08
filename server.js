@@ -37,7 +37,13 @@ await connectMongo();
 // === MIDDLEWARE DASAR ===
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-app.use(cors());
+app.use(cors({
+  origin: [
+    "https://accused-margret-s1eepym3-afed2c18.koyeb.app",
+    "http://localhost:3000"
+  ],
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "public")));
