@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - PrivateCloud</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="css/modern.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .login-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; width: 100%; }
+    .form-control-modern {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--text-main);
+    }
+    .form-control-modern:focus {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <div class="glass-card" style="max-width: 450px;">
+      <div class="text-center mb-5">
+        <div class="mb-3 d-inline-block p-3 rounded-circle" style="background: rgba(59, 130, 246, 0.1); color: var(--primary);">
+            <i data-lucide="shield-check" style="width: 48px; height: 48px;"></i>
+        </div>
+        <h2 class="fw-bold">Selamat Datang</h2>
+        <p class="text-muted">Masuk ke PrivateCloud Secure Storage</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="mb-4">
+          <label class="form-label small fw-bold">Username</label>
+          <input type="text" id="username" class="form-control form-control-modern" placeholder="Masukkan username" required>
+        </div>
+        <div class="mb-5">
+          <label class="form-label small fw-bold">Password</label>
+          <input type="password" id="password" class="form-control form-control-modern" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-primary-modern btn-modern w-100 mb-3">
+          Masuk ke Akun <i data-lucide="arrow-right" class="ms-2"></i>
+        </button>
+      </form>
+
+      <div class="text-center">
+        <p class="small text-muted">Belum punya akun? <a href="register.html" class="text-primary fw-bold text-decoration-none">Daftar Sekarang</a></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast-modern"></div>
+
+  <script>
+    lucide.createIcons();
+    const API_URL = window.location.origin;
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const res = await fetch(`${API_URL}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          localStorage.setItem("token", data.token);
+          localStorage.setItem("role", data.role); // Simpan role juga
+          showToast("✅ Login Berhasil!");
+          
+          // Redirect berdasarkan role
+          setTimeout(() => {
+            if (data.role === "admin") {
+              window.location.href = "admin.html";
+            } else {
+              window.location.href = "index.html";
+            }
+          }, 1000);
+        } else {
+          showToast("❌ " + (data.message || "Login Gagal"));
+        }
+      } catch (err) {
+        showToast("❌ Gagal terhubung ke server");
+      }
+    });
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.innerText = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    // Auto theme based on local storage
+    if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode");
+  </script>
+</body>
+</html>

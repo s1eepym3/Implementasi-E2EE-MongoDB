@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - PrivateCloud</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/modern.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .search-container { position: relative; width: 100%; max-width: 300px; }
+    .search-container i { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-input { padding-left: 40px !important; }
+    .file-icon { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: var(--primary); }
+  </style>
+</head>
+<body>
+
+  <script>
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (!token || role !== "admin") {
+        window.location.href = "login.html";
+    }
+  </script>
+
+  <div class="container d-flex justify-content-center">
+    <div class="glass-card">
+      
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+          <h2 class="fw-bold mb-0">Admin Panel</h2>
+          <p class="text-muted small">Kelola Seluruh File di Database</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button id="themeToggle" class="btn btn-light btn-modern">
+            <i data-lucide="moon"></i>
+          </button>
+          <button id="logoutBtn" class="btn btn-outline-danger btn-modern">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Admin Content Area -->
+      <div id="adminView">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+          <h4 class="fw-bold mb-0"><i data-lucide="database" class="me-2"></i>Semua File Sistem</h4>
+          
+          <div class="d-flex gap-2">
+            <div class="search-container">
+              <i data-lucide="search" style="width: 18px;"></i>
+              <input type="text" id="searchInput" class="form-control form-control-sm search-input" placeholder="Cari file atau pemilik...">
+            </div>
+            <button onclick="loadAdminFiles()" class="btn btn-light btn-sm">
+              <i data-lucide="refresh-cw"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th>Tipe</th>
+                <th>Pemilik</th>
+                <th>Nama File</th>
+                <th>Ukuran</th>
+                <th class="text-end">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="storage-widget mt-5">
+            <div class="d-flex align-items-center gap-3">
+                <div class="p-3 rounded-circle bg-primary bg-opacity-10 text-primary">
+                    <i data-lucide="server"></i>
+                </div>
+                <div>
+                    <h6 class="fw-bold mb-0">Status Server</h6>
+                    <p class="text-muted small mb-0">MongoDB Atlas Cluster Active</p>
+                </div>
+            </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="toast" class="toast-modern"></div>
+
+  <!-- Scripts -->
+  <script src="js/crypto-helper.js"></script>
+  <script>
+    const API_URL = window.location.origin;
+    const tokenHeader = { "Authorization": "Bearer " + localStorage.getItem("token") };
+    
+    let allAdminFiles = [];
+    lucide.createIcons();
+
+    const searchInput = document.getElementById("searchInput");
+    searchInput.addEventListener("input", () => {
+      const query = searchInput.value.toLowerCase();
+      const filtered = allAdminFiles.filter(f => 
+        f.filename.toLowerCase().includes(query) || 
+        (f.metadata?.user || "").toLowerCase().includes(query)
+      );
+      renderAdminFiles(filtered);
+    });
+
+    async function loadAdminFiles() {
+      try {
+        const res = await fetch(`${API_URL}/admin/files`, { headers: tokenHeader });
+        allAdminFiles = await res.json();
+        renderAdminFiles(allAdminFiles);
+      } catch (err) {
+        showToast("❌ Gagal memuat file");
+      }
+    }
+
+    function getFileIcon(filename) {
+      const ext = filename.split('.').pop().toLowerCase();
+      if (['jpg', 'jpeg', 'png', 'gif', 'svg'].includes(ext)) return 'image';
+      if (['mp4', 'mkv', 'avi', 'mov'].includes(ext)) return 'video';
+      if (['mp3', 'wav', 'flac', 'm4a'].includes(ext)) return 'music';
+      if (['pdf', 'doc', 'docx', 'txt', 'pdf'].includes(ext)) return 'file-text';
+      if (['zip', 'rar', '7z'].includes(ext)) return 'archive';
+      return 'file';
+    }
+
+    function renderAdminFiles(files) {
+      const adminTableBody = document.getElementById("adminTableBody");
+      adminTableBody.innerHTML = "";
+      files.forEach(file => {
+        const size = (file.length / 1024).toFixed(1) + " KB";
+        const owner = file.metadata?.user || "Unknown";
+        const iconName = getFileIcon(file.filename);
+        
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><div class="file-icon"><i data-lucide="${iconName}" style="width: 20px;"></i></div></td>
+          <td><span class="badge bg-primary bg-opacity-10 text-primary px-3">${owner}</span></td>
+          <td class="fw-medium">${file.filename}</td>
+          <td class="text-muted small">${size}</td>
+          <td>
+            <div class="d-flex justify-content-end gap-2">
+              <button class="btn btn-sm btn-light text-success" onclick="downloadAndDecrypt('${file._id}', '${file.filename}', '${file.metadata?.key}', '${file.metadata?.iv}')">
+                <i data-lucide="download"></i>
+              </button>
+              <button class="btn btn-sm btn-light text-danger" onclick="deleteFileAdmin('${file._id}')">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        adminTableBody.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+
+    async function downloadAndDecrypt(id, filename, hexKey, hexIv) {
+      showToast("📥 Mendekripsi (Admin Mode)...");
+      try {
+        const res = await fetch(`${API_URL}/download/${id}?token=${localStorage.getItem("token")}`);
+        const encryptedData = await res.arrayBuffer();
+        const decryptedData = await decryptFile(encryptedData, hexKey, hexIv);
+
+        const blob = new Blob([decryptedData]);
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        showToast("✅ Berhasil!");
+      } catch (err) { showToast("❌ Gagal Dekripsi"); }
+    }
+
+    async function deleteFileAdmin(id) {
+      if (!confirm("Hapus file secara permanen?")) return;
+      await fetch(`${API_URL}/admin/delete/${id}`, { method: "DELETE", headers: tokenHeader });
+      loadAdminFiles();
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.innerText = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 3000);
+    }
+
+    document.getElementById("themeToggle").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+      const isDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      document.getElementById("themeToggle").innerHTML = isDark ? '<i data-lucide="sun"></i>' : '<i data-lucide="moon"></i>';
+      lucide.createIcons();
+    });
+
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark-mode");
+      document.getElementById("themeToggle").innerHTML = '<i data-lucide="sun"></i>';
+      lucide.createIcons();
+    }
+    
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.clear();
+      window.location.href = "login.html";
+    });
+
+    loadAdminFiles();
+  </script>
+</body>
+</html>

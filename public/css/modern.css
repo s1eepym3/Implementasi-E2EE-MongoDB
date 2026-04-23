@@ -1,0 +1,187 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  --card-bg: rgba(255, 255, 255, 0.8);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --border: rgba(226, 232, 240, 0.8);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --glass-blur: blur(10px);
+}
+
+body.dark-mode {
+  --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --bg-gradient: radial-gradient(circle at top left, #0f172a, #1e293b);
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --border: rgba(51, 65, 85, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
+
+* {
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', sans-serif;
+  background: var(--bg-gradient);
+  min-height: 100vh;
+  color: var(--text-main);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.glass-card {
+  background: var(--card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 900px;
+  margin: 20px;
+}
+
+/* === DRAG & DROP AREA === */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  background: rgba(59, 130, 246, 0.03);
+  margin-bottom: 1.5rem;
+  position: relative;
+}
+
+.upload-zone:hover, .upload-zone.dragover {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.upload-zone i {
+  font-size: 3rem;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+
+/* === BUTTONS === */
+.btn-modern {
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary-modern {
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.btn-primary-modern:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+/* === TABLE === */
+.table-modern {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+
+.table-modern th {
+  padding: 12px;
+  color: var(--text-muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-modern td {
+  padding: 16px 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.table-modern tr td:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+.table-modern tr td:last-child { border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+.btn-action {
+  width: 36px;
+  height: 36px;
+  padding: 0 !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px !important;
+}
+
+.btn-action:hover {
+  transform: scale(1.1);
+  background: var(--primary) !important;
+  color: white !important;
+}
+
+.btn-action.text-danger:hover {
+  background: #ef4444 !important;
+  color: white !important;
+}
+
+/* === STORAGE INFO === */
+.storage-widget {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-top: 2rem;
+}
+
+.progress-modern {
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.progress-bar-modern {
+  height: 100%;
+  background: var(--primary);
+}
+
+/* === TOAST === */
+.toast-modern {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  background: var(--text-main);
+  color: var(--card-bg);
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 500;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  z-index: 10000;
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.toast-modern.show {
+  opacity: 1;
+  transform: translateX(0);
+}
